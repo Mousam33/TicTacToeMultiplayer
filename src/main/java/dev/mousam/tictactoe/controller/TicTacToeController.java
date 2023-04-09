@@ -1,5 +1,6 @@
 package dev.mousam.tictactoe.controller;
 
+import dev.mousam.tictactoe.model.PlayerCache;
 import dev.mousam.tictactoe.service.TicTacToeGame;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,15 +16,18 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TicTacToeController {
     private final TicTacToeGame ticTacToeGame;
     private final Map<UUID, SseEmitter> subscribers;
+    private final PlayerCache playerCache;
 
     @Autowired
-    public TicTacToeController(TicTacToeGame ticTacToeGame) {
+    public TicTacToeController(TicTacToeGame ticTacToeGame, PlayerCache playerCache) {
         this.ticTacToeGame = ticTacToeGame;
+        this.playerCache   = playerCache;
         this.subscribers   = new ConcurrentHashMap<>();
     }
 
     @GetMapping
     public ResponseEntity<?> createPlayer(@RequestParam String name) {
+        if(name == null) return null;
         return ticTacToeGame.createPlayer(name);
     }
 
@@ -32,11 +36,16 @@ public class TicTacToeController {
         ResponseEntity<?> response = ticTacToeGame.connect(params.get("name"), params.get("opponent"));
         UUID boardId = UUID.fromString(response.getBody().toString());
         if(!this.subscribers.containsKey(boardId)) {
-            SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
+            SseEmitter emitter = new SseEmitter(-1L);
             this.subscribers.put(boardId, emitter);
             emitter.onCompletion(() -> this.subscribers.remove(boardId));
         }
         return response;
+    }
+
+    @GetMapping(path = "/{player}")
+    public SseEmitter subscribeToPlayerEvents(@PathVariable String player) {
+        return this.playerCache.getPlayer(player).emitter;
     }
 
     @GetMapping("/subscribe")

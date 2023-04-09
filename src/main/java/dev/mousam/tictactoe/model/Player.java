@@ -1,18 +1,18 @@
 package dev.mousam.tictactoe.model;
 
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
 public class Player {
     public String name;
     public Player opponent;
     public PlayingPiece playingPiece;
+    public SseEmitter emitter;
     public Boolean isTurn;
 
-    public Player(PlayingPiece playingPiece, String name) {
+    public Player(PlayingPiece playingPiece, String name, SseEmitter emitter) {
         this.playingPiece = playingPiece;
         this.name = name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+        this.emitter = emitter;
     }
 
     public void setPlayingPiece(PlayingPiece playingPiece) {

@@ -38,6 +38,7 @@ public class TicTacToeGame {
         //@Todo: Request opponent to play instead of forcing them.
         player.setOpponent(opponent);
         opponent.setOpponent(player);
+        sendEvent("Connected with " + player.name, opponent.emitter);
         opponent.setPlayingPiece(new PlayingPieceX());
         player.setPlayingPiece(new PlayingPieceO());
         opponent.setTurn(true);
@@ -61,12 +62,11 @@ public class TicTacToeGame {
         Board gameBoard = this.boardCache.getBoard(UUID.fromString(boardId));
         PlayingPiece piece = player.getTurn() ? player.getPlayingPiece() : opponent.getPlayingPiece();
         if(player.getTurn() && gameBoard.addPiece(row, col, piece)) {
-            //gameBoard.printBoard();
             sendEvent(gameBoard, emitter);
             if(checkIfPlayerWon(row, col, piece.pieceType, gameBoard)) {
                 this.boardCache.deleteBoard(UUID.fromString(boardId));
                 emitter.complete();
-                return new ResponseEntity<>(player.getTurn() ? "You won" : opponent.name + " won", HttpStatus.OK);
+                return new ResponseEntity<>((player.getTurn() ? playerName : opponent.name) + " won", HttpStatus.OK);
             }
             player.setTurn(!player.getTurn());
             opponent.setTurn(!opponent.getTurn());
@@ -112,9 +112,9 @@ public class TicTacToeGame {
         return rowMatch || columnMatch || diagonalMatch || antiDiagonalMatch;
     }
 
-    public void sendEvent(Board gameBoard, SseEmitter emitter) {
+    public void sendEvent(Object obj, SseEmitter emitter) {
         try {
-            emitter.send(SseEmitter.event().data(gameBoard));
+            emitter.send(SseEmitter.event().data(obj));
         } catch (IOException e) {
             e.getMessage();
         }

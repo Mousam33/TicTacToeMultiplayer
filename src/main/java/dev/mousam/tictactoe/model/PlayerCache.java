@@ -1,6 +1,7 @@
 package dev.mousam.tictactoe.model;
 
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,8 +15,10 @@ public class PlayerCache {
     }
 
     public void setPlayer(String name) {
-        Player newPlayer = new Player(new PlayingPieceO(), name);
-        this.mapping.put(name, newPlayer);
+        if(!this.mapping.containsKey(name)) {
+            Player newPlayer = new Player(new PlayingPieceO(), name, new SseEmitter(-1L));
+            this.mapping.put(name, newPlayer);
+        }
     }
 
     public Player getPlayer(String name) {
