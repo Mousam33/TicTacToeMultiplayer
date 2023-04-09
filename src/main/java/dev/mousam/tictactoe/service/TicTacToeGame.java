@@ -40,9 +40,10 @@ public class TicTacToeGame {
         player.setPlayingPiece(new PlayingPieceO());
         opponent.setTurn(true);
         player.setTurn(false);
-        UUID boardId      = UUID.randomUUID();
-        while(boardCache.isIdPresent(boardId))
-             boardId      = UUID.randomUUID();
+        UUID boardId;
+        do {
+            boardId = UUID.randomUUID();
+        }while(this.boardCache.isIdPresent(boardId));
         this.boardCache.getBoard(boardId);
         return new ResponseEntity<>(boardId.toString(), HttpStatus.OK);
     }
@@ -58,6 +59,7 @@ public class TicTacToeGame {
         Board gameBoard = this.boardCache.getBoard(UUID.fromString(boardId));
         PlayingPiece piece = player.getTurn() ? player.getPlayingPiece() : opponent.getPlayingPiece();
         if(player.getTurn() && gameBoard.addPiece(row, col, piece)) {
+            gameBoard.printBoard();
             if(checkIfPlayerWon(row, col, piece.pieceType, gameBoard)) {
                 this.boardCache.deleteBoard(UUID.fromString(boardId));
                 return new ResponseEntity<>(player.getTurn() ? "You won" : opponent.name + " won", HttpStatus.OK);

@@ -2,6 +2,7 @@ package dev.mousam.tictactoe.model;
 
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -9,8 +10,13 @@ import java.util.UUID;
 public class BoardCache {
     public Map<UUID, Board> mapping;
 
+    public BoardCache() {
+        this.mapping = new HashMap<>();
+    }
+
     public Board getBoard(UUID uuid) {
-        this.mapping.put(uuid, new Board(3));
+        if(!this.mapping.containsKey(uuid))
+            this.mapping.put(uuid, new Board(3));
         return this.mapping.get(uuid);
     }
 
