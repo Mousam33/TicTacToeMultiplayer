@@ -2,15 +2,15 @@ package dev.mousam.tictactoe.model;
 
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class PlayerCache {
     public Map<String, Player> mapping;
 
     public PlayerCache() {
-        this.mapping = new HashMap<>();
+        this.mapping = new ConcurrentHashMap<>();
     }
 
     public void setPlayer(String name) {

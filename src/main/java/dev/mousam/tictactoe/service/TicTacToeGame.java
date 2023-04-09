@@ -5,7 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
 import java.util.UUID;
 
 @Service
@@ -48,7 +50,7 @@ public class TicTacToeGame {
         return new ResponseEntity<>(boardId.toString(), HttpStatus.OK);
     }
 
-    public ResponseEntity<?> play(String playerName, String input, String boardId) {
+    public ResponseEntity<?> play(String playerName, String input, String boardId, SseEmitter emitter) {
         Player player   = this.playerCache.getPlayer(playerName);
         Player opponent = player.opponent;
         if(opponent == null)
@@ -59,9 +61,11 @@ public class TicTacToeGame {
         Board gameBoard = this.boardCache.getBoard(UUID.fromString(boardId));
         PlayingPiece piece = player.getTurn() ? player.getPlayingPiece() : opponent.getPlayingPiece();
         if(player.getTurn() && gameBoard.addPiece(row, col, piece)) {
-            gameBoard.printBoard();
+            //gameBoard.printBoard();
+            sendEvent(gameBoard, emitter);
             if(checkIfPlayerWon(row, col, piece.pieceType, gameBoard)) {
                 this.boardCache.deleteBoard(UUID.fromString(boardId));
+                emitter.complete();
                 return new ResponseEntity<>(player.getTurn() ? "You won" : opponent.name + " won", HttpStatus.OK);
             }
             player.setTurn(!player.getTurn());
@@ -106,5 +110,13 @@ public class TicTacToeGame {
             }
         }
         return rowMatch || columnMatch || diagonalMatch || antiDiagonalMatch;
+    }
+
+    public void sendEvent(Board gameBoard, SseEmitter emitter) {
+        try {
+            emitter.send(SseEmitter.event().data(gameBoard));
+        } catch (IOException e) {
+            e.getMessage();
+        }
     }
 }

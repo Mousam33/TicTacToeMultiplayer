@@ -2,16 +2,16 @@ package dev.mousam.tictactoe.model;
 
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class BoardCache {
     public Map<UUID, Board> mapping;
 
     public BoardCache() {
-        this.mapping = new HashMap<>();
+        this.mapping = new ConcurrentHashMap<>();
     }
 
     public Board getBoard(UUID uuid) {
