@@ -3,8 +3,10 @@ package dev.mousam.tictactoe.model;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Component
 public class PlayerCache {
@@ -23,6 +25,12 @@ public class PlayerCache {
 
     public Player getPlayer(String name) {
         return this.mapping.getOrDefault(name, null);
+    }
+
+    public List<String> getUnassignedPlayers() {
+        return this.mapping.values().stream()
+                .filter(x -> x.opponent == null)
+                .map(x -> x.getName()).collect(Collectors.toList());
     }
 
 }
