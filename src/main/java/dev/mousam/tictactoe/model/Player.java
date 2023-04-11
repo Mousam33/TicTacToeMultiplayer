@@ -1,6 +1,9 @@
 package dev.mousam.tictactoe.model;
 
+import org.springframework.boot.web.servlet.server.Session;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import javax.servlet.http.HttpSession;
 
 public class Player {
     public String name;

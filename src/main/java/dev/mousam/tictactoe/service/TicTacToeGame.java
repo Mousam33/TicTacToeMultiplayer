@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.UUID;
 
@@ -38,7 +39,6 @@ public class TicTacToeGame {
         //@Todo: Request opponent to play instead of forcing them.
         player.setOpponent(opponent);
         opponent.setOpponent(player);
-        sendEvent("Connected with " + player.name, opponent.emitter);
         opponent.setPlayingPiece(new PlayingPieceX());
         player.setPlayingPiece(new PlayingPieceO());
         opponent.setTurn(true);
@@ -48,6 +48,8 @@ public class TicTacToeGame {
             boardId = UUID.randomUUID();
         }while(this.boardCache.isIdPresent(boardId));
         this.boardCache.getBoard(boardId);
+        sendEvent(boardId, opponent.emitter);
+        sendEvent(boardId, player.emitter);
         return new ResponseEntity<>(boardId.toString(), HttpStatus.OK);
     }
 
@@ -66,6 +68,10 @@ public class TicTacToeGame {
             if(checkIfPlayerWon(row, col, piece.pieceType, gameBoard)) {
                 this.boardCache.deleteBoard(UUID.fromString(boardId));
                 emitter.complete();
+                opponent.opponent = null;
+                player.opponent   = null;
+                sendEvent("disconnect", opponent.emitter);
+                sendEvent("disconnect", player.emitter);
                 return new ResponseEntity<>((player.getTurn() ? playerName : opponent.name) + " won", HttpStatus.OK);
             }
             player.setTurn(!player.getTurn());
