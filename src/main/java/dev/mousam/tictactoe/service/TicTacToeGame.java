@@ -65,6 +65,8 @@ public class TicTacToeGame {
         PlayingPiece piece = player.getTurn() ? player.getPlayingPiece() : opponent.getPlayingPiece();
         if(player.getTurn() && gameBoard.addPiece(row, col, piece)) {
             sendEvent(gameBoard, emitter);
+            sendEvent(gameBoard, opponent.emitter);
+            sendEvent(gameBoard, player.emitter);
             if(checkIfPlayerWon(row, col, piece.pieceType, gameBoard)) {
                 this.boardCache.deleteBoard(UUID.fromString(boardId));
                 emitter.complete();
