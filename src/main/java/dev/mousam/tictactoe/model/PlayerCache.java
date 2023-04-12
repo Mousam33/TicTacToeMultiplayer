@@ -3,7 +3,6 @@ package dev.mousam.tictactoe.model;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import javax.servlet.http.HttpSession;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,6 +31,10 @@ public class PlayerCache {
         return this.mapping.values().stream()
                 .filter(x -> x.opponent == null)
                 .map(Player::getName).collect(Collectors.toList());
+    }
+
+    public void remove(String name) {
+        this.mapping.remove(name);
     }
 
 }

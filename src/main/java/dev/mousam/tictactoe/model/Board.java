@@ -2,17 +2,20 @@ package dev.mousam.tictactoe.model;
 
 public class Board {
     public int size;
+    public int emptyCells;
     public PlayingPiece[][] board;
 
     public Board(int size) {
         this.size = size;
         this.board = new PlayingPiece[size][size];
+        this.emptyCells = size * size;
     }
 
     public boolean addPiece(int row, int col, PlayingPiece playingPiece) {
         if(row < 0 || row >= this.size || col < 0 || col >= this.size || this.board[row][col] != null || playingPiece == null)
             return false;
         this.board[row][col] = playingPiece;
+        this.emptyCells--;
         return true;
     }
 

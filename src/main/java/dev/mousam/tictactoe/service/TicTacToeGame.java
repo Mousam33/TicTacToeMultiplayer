@@ -9,6 +9,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.UUID;
 
 @Service
@@ -48,6 +49,8 @@ public class TicTacToeGame {
             boardId = UUID.randomUUID();
         }while(this.boardCache.isIdPresent(boardId));
         this.boardCache.getBoard(boardId);
+        player.emitter.onCompletion(() -> this.playerCache.remove(player.getName()));
+        opponent.emitter.onCompletion(() -> this.playerCache.remove(opponent.getName()));
         sendEvent(boardId, opponent.emitter);
         sendEvent(boardId, player.emitter);
         return new ResponseEntity<>(boardId.toString(), HttpStatus.OK);
@@ -64,24 +67,36 @@ public class TicTacToeGame {
         Board gameBoard = this.boardCache.getBoard(UUID.fromString(boardId));
         PlayingPiece piece = player.getTurn() ? player.getPlayingPiece() : opponent.getPlayingPiece();
         if(player.getTurn() && gameBoard.addPiece(row, col, piece)) {
-            sendEvent(gameBoard, emitter);
+            //sendEvent(gameBoard, emitter);
             sendEvent(gameBoard, opponent.emitter);
             sendEvent(gameBoard, player.emitter);
             if(checkIfPlayerWon(row, col, piece.pieceType, gameBoard)) {
                 this.boardCache.deleteBoard(UUID.fromString(boardId));
-                emitter.complete();
                 opponent.opponent = null;
                 player.opponent   = null;
                 sendEvent("disconnect", opponent.emitter);
                 sendEvent("disconnect", player.emitter);
+                //emitter.complete();
+                opponent.emitter.complete();
+                player.emitter.complete();
                 return new ResponseEntity<>((player.getTurn() ? playerName : opponent.name) + " won", HttpStatus.OK);
+            }
+            if(gameBoard.emptyCells == 0) {
+                opponent.opponent = null;
+                player.opponent   = null;
+                sendEvent("disconnect", opponent.emitter);
+                sendEvent("disconnect", player.emitter);
+                //emitter.complete();
+                opponent.emitter.complete();
+                player.emitter.complete();
+                return new ResponseEntity<>("draw", HttpStatus.OK);
             }
             player.setTurn(!player.getTurn());
             opponent.setTurn(!opponent.getTurn());
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>((player.getTurn() ? player.name : opponent.name) + "'s turn", HttpStatus.OK);
+        return new ResponseEntity<>(gameBoard, HttpStatus.OK);
     }
 
     public boolean checkIfPlayerWon(int row, int col, PieceType pieceType, Board gameBoard) {
@@ -124,7 +139,7 @@ public class TicTacToeGame {
         try {
             emitter.send(SseEmitter.event().data(obj));
         } catch (IOException e) {
-            e.getMessage();
+            System.out.println(e.getMessage());
         }
     }
 }
